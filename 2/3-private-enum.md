@@ -14,7 +14,7 @@
 
 * 생성자는 오직 최초 한번만 호출되고 Elvis는 싱글톤이 된다.
 
-```
+```java
 public class Elvis {
     public static final Elvis instance = new Elvis();
     private Elvis() {
@@ -35,7 +35,7 @@ public class SingleTest {
 
 단, 이걸 뚫는 방법이 있다. 리플렉션을 사용해서 private 생성자를 호출하는 방법이다.
 
-```
+```java
 public class SingleTest {
     public static void main(String[] args) throws NoSuchMethodException {
         Constructor<Elvis> constructor = Elvis.class.getConstructor();
@@ -49,7 +49,7 @@ public class SingleTest {
 
 이 방법을 막고자 생성자 안에서 생성한 인스턴스 개수를 카운팅하거나 flag를 이용해서 예외를 던지게 할 수 있다.
 
-```
+```java
 public class Elvis {
     public static final Singleton1 instance = new Elvis();
 
@@ -74,7 +74,7 @@ public class Elvis {
 
 ### 방법 2 : static 팩토리 메소드
 
-```
+```java
 public class Elvis {
 
     private static final Elvis INSTANCE = new Elvis(); //private!!
@@ -96,7 +96,7 @@ public class Elvis {
 * API를 변경하지 않고도 싱글톤으로 쓸지 안쓸지 변경할 수 있다.
 * 처음엔 싱글톤으로 쓰다가 나중엔 쓰레드당 새 인스턴스를 만드는 등 클라이언트 코드를 고치지 않고도 변경할 수 있다.
 
-```
+```java
 public class Elvis {
 
     private static final Elvis INSTANCE = new Elvis(); //private!!
@@ -110,20 +110,18 @@ public class Elvis {
 }
 ```
 
-&#x20;
-
 * 필요하다면 Generic 싱글톤 팩토리 (아이템30)를 만들 수도 있다.
 * static 팩토리 메소드를 Supplier에 대한 메소드 레퍼런스로 사용할 수도 있다.
 * [interface supplier](https://docs.oracle.com/javase/8/docs/api/java/util/function/Supplier.html)
 
-```
+```java
     public static Elvis getInstance() {
         return INSTANCE;
     }
     //이 메소드 자체가 interface supplier처럼 취급이 될 있는 메소드
 ```
 
-```
+```java
     Supplier<Elvis> s1supplier = Elvis::getInstance;
 ```
 
@@ -131,25 +129,26 @@ public class Elvis {
 
 ## 직렬화 (Serialization)
 
-* 위에서 살펴본 두 방법 모두, 직렬화에 사용한다면 역직렬화 할 때 같은 타입의 인스턴스가 여러 개 생길 수 있다.
-  * 역직렬화할 때마다 new를 사용하게 되면서 새로운 객체가 나오고, 그러면 똑같은 타입의 객체가 여러 개가 되는 것.
+위에서 살펴본 두 방법 모두, 직렬화에 사용한다면 역직렬화 할 때 같은 타입의 인스턴스가 여러 개 생길 수 있다.
+
+역직렬화할 때마다 new를 사용하게 되면서 새로운 객체가 나오고, 그러면 똑같은 타입의 객체가 여러 개가 되는 것.
 
 &#x20;
 
 ### 해결책 1 : trasient, readResolve()의 사용
 
-* 이 문제를 해결하려면 모든 인스턴스 필드에 transient를 추가 (직렬화 하지 않겠다는 뜻) 하고,
+이 문제를 해결하려면 모든 인스턴스 필드에 transient를 추가 (직렬화 하지 않겠다는 뜻) 하고,
 
-```
+```java
     private static final transient Elvis INSTANCE = new Elvis();
     //INSTANCE를 직렬화하지 않는다.
 ```
 
 &#x20;
 
-* readResolve 메소드를 다음과 같이 구현하면 된다. ([객체 직렬화 API의 비밀](http://www.oracle.com/technetwork/articles/java/javaserial-1536170.html) 참고)
+readResolve 메소드를 다음과 같이 구현하면 된다. ([객체 직렬화 API의 비밀](http://www.oracle.com/technetwork/articles/java/javaserial-1536170.html) 참고)
 
-```
+```java
     private Object readResolve() {
         return INSTANCE;
     }
@@ -161,9 +160,9 @@ public class Elvis {
 
 ### 해결책 2 : Enum의 사용
 
-직렬화/역직렬화 할 때 코딩으로 문제를 해결할 필요도 없고, 리플렉션으로 호출되는 문제도 고민할 필요없는 방법이 있다.
+직렬화/역직렬화 할 때 코딩으로 문제를 해결할 필요도 없고, 리플렉션으로 호출되는 문제도 고민할 필요 없는 방법이 있다.
 
-```
+```java
 public enum Elvis {
     INSTANCE;
 
@@ -173,12 +172,13 @@ public enum Elvis {
 }
 ```
 
-```
+```java
     String name = Elvis.INSTANCE.getName();
 ```
 
-* 코드는 좀 불편하게 느껴지지만 싱글톤을 구현하는 최선의 방법이다. (이상적)
-* 하지만 이 방법은 Enum 말고 다른 상위 클래스를 상속해야 한다면 사용할 수 없다. (하지만 인터페이스는 구현할 수 있다.)
+코드는 좀 불편하게 느껴지지만 싱글톤을 구현하는 최선의 방법이다. (이상적)
+
+하지만 이 방법은 Enum 말고 다른 상위 클래스를 상속해야 한다면 사용할 수 없다. (하지만 인터페이스는 구현할 수 있다.)
 
 
 
@@ -186,7 +186,7 @@ public enum Elvis {
 
 <summary>실습</summary>
 
-```
+```java
 import java.lang.reflect.*;
 
 enum Elvis {
